@@ -1,0 +1,105 @@
+pygame学习笔记（4）——声音
+转载请注明：@小五义 http://www.cnblogs.com/xiaowuyi
+
+pygame.mixer是一个用来处理声音的模块，其含义为“混音器”。游戏中对声音的处理一般包括制造声音和播放声音两部分，这里仅学习了播放声音部分。
+1、pygame.mixer启动与初始化
+pygame.mixer.init():mixer的初始化。程序中，使用时，一般放在最前面的几句代码中：
+import pygame
+pygame.init()
+pygame.mixer.init()
+2、播放声音片段wav文件
+播放声音片段wav文件时，pygame.mixer使用Sound对象，格式为：
+soundwav=pygame.mixer.Sound("filename.wav") #filename.wav文件名
+soundwav.play()
+在游戏中，往往用下面的代码来完成：
+
+复制代码
+#@小五义 http://www.cnblogs.com/xiaowuyi
+import pygame,sys
+pygame.init()
+pygame.mixer.init()
+screen=pygame.display.set_mode([640,480])
+pygame.time.delay(1000)#等待1秒让mixer完成初始化
+soundwav=pygame.mixer.Sound("filename.wav") 
+soundwav.play()
+while 1:
+    for event in pygame.event.get():
+        if event.type==pygame.QUIT:
+            sys.exit()
+复制代码
+3、播放mp3、wma、ogg音乐文件
+这里只是学习了一个mp3文件，如果非windows系统，那可以试试ogg文件。播放音乐文件主要使用pygame.mixer中的music模块，主要方法为：
+pygame.mixer.music.load("filename.mp3")
+pygame.mixer.music.play(n,start,stop)#第一个参数为播放次数，如果是-1表示循环播放，省略表示只播放1次。第二个参数和第三个参数分别表示播放的起始和结束位置。
+完整的代码为：
+
+复制代码
+#@小五义 http://www.cnblogs.com/xiaowuyi
+import pygame,sys
+pygame.init()
+pygame.mixer.init()
+screen=pygame.display.set_mode([640,480])
+pygame.time.delay(1000)
+pygame.mixer.music.load("filename.mp3")
+pygame.mixer.music.play()
+while 1:
+    for event in pygame.event.get():
+        if event.type==pygame.QUIT:
+            sys.exit()
+复制代码
+程序在运行时，一旦开始播放音乐，就会继续做下一件事情，也就是说，如果我们要播放两首歌，那么
+pygame.mixer.music.load("filename1.mp3")
+pygame.mixer.music.play()
+pygame.mixer.music.load("filename2.mp3")
+pygame.mixer.music.play() 
+这段代码运行后，就会出现两首歌同时在播放的情况。实际中，我们常常需要播放完一首，再播放另一首，这样就需要利用pygame.mixer.music.get_busy()函数来判断，如果函数返回值为True那么说明目前处于忙的状态，否则返回 False。例如：
+
+复制代码
+#@小五义 http://www.cnblogs.com/xiaowuyi
+import pygame,sys
+pygame.init()
+pygame.mixer.init()
+screen=pygame.display.set_mode([640,480])
+pygame.time.delay(1000)
+pygame.mixer.music.load("filename.mp3")
+pygame.mixer.music.play()
+soundwav=pygame.mixer.Sound("filename.wav") 
+while 1:
+    for event in pygame.event.get():
+        if event.type==pygame.QUIT:
+            sys.exit()
+    if not pygame.mixer.music.get_busy():
+        soundwav.play()
+        pygame.time.delay(5000)#等待5秒让filename.wav播放结束
+        sys.exit()
+复制代码
+4、控制音量
+pygame.mixer.music.set_volume()用来控制音量，取值范围为0-1.0的浮点数。0为最小值，1为最大值。
+5、制作mp3播放器中遇到的问题
+python+wxpython+pygame完全可以很容易方便的做出一个mp3播放器，但是在制作中遇到两个问题：
+一是中文歌曲名的显示，通过搜索已经解决，加上# encoding='GBK'
+二是pygame在播放mp3文件时，发现并不是所有的mp3文件都有播放，常常会出现播放声音不正确的情况，有时只是杂响。经过与python学习交流群(2)中的すeasyげ交流，すeasyげ提出位速128kbps的mp3文件可以播放，但从网上下了几个128kbps的mp3测试后，发现播放不正常的情况依然存在。不知道哪位大牛能解决这一问题，希望能把解决方法告知一下，谢谢。
+因此，如果您打算写一个mp3的播放工具，python能做mp3播放的模块很多，这里，我觉得可以考虑使用mp3play模块，比较方便简单。目前版本为mp3play 0.1.15，具体下载地址为http://pypi.python.org/pypi/mp3play/。这里简单介绍一下其主要方法：
+play(n,starms,endms):播放，第一个参数表示次数，第二、三个参数表示播放的起止位置，单位是毫秒。
+stop(): 停止。
+pause(), unpause(): 暂停和开始。
+isplaying(): 判断是否正在播放，如果返回为TRUE，表示正在播放歌曲。
+ispaused(): 判断是否为暂停，如果返回为TRUE，表示暂停。
+seconds(): 返回mp3文件共多少秒，注意这里的单位是秒。
+milliseconds(): 返回mp3文件共多少毫秒，注意这里的单位是毫秒。
+mp3play首页上给出的例子为：
+
+复制代码
+#@小五义 http://www.cnblogs.com/xiaowuyi
+import mp3play
+filename = r'C:\music.mp3'#播放c盘下的music.mp3文件
+clip = mp3play.load(filename)
+clip.play()
+import time
+time.sleep(min(30, clip.seconds()))#如果mp3文件的长度小于30少时，全部播放完，否则仅播放30秒。
+clip.stop()
+复制代码
+ 
+
+分类: python学习笔记, pygame学习笔记
+标签: pygame, mp3play
